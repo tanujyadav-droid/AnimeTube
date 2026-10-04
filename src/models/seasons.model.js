@@ -15,6 +15,7 @@ const seasonSchema = new Schema(
     title: {
       type: String,
       trim: true,
+      index: true
     },
     description: {
       type: String,

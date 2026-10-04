@@ -33,20 +33,20 @@ const reviewSchema = new Schema(
   { timestamps: true }
 );
 
-// // a review must be attached to exactly one of anime / season / episode
-// reviewSchema.pre("validate", function (next) {
-//   const targets = [this.anime, this.season, this.episode].filter(Boolean);
-//   if (targets.length !== 1) {
-//     return next(
-//       new Error("A review must belong to exactly one of anime, season or episode")
-//     );
-//   }
-//   next();
-// });
+// a review must be attached to exactly one of anime / season / episode
+reviewSchema.pre("validate", function (next) {
+  const targets = [this.anime, this.season, this.episode].filter(Boolean);
+  if (targets.length !== 1) {
+    return next(
+      new Error("A review must belong to exactly one of anime, season or episode")
+    );
+  }
+  next();
+});
 
-// // so "get all reviews of this anime/season/episode" stays fast
-// reviewSchema.index({ anime: 1 });
-// reviewSchema.index({ season: 1 });
-// reviewSchema.index({ episode: 1 });
+// so "get all reviews of this anime/season/episode" stays fast
+reviewSchema.index({ anime: 1 });
+reviewSchema.index({ season: 1 });
+reviewSchema.index({ episode: 1 });
 
 export const Review = mongoose.model("Review", reviewSchema);

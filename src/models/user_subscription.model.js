@@ -30,11 +30,11 @@ const userSubscriptionSchema = new Schema(
   { timestamps: true }
 );
 
-// // a user can have many past subscriptions, but only ONE active at a time
-// userSubscriptionSchema.index(
-//   { user: 1 },
-//   { unique: true, partialFilterExpression: { status: "ACTIVE" } }
-// );
+// a user can have many past subscriptions, but only ONE active at a time
+userSubscriptionSchema.index(
+  { user: 1 },
+  { unique: true, partialFilterExpression: { status: "ACTIVE" } }
+);
 
 export const UserSubscription = mongoose.model(
   "UserSubscription",
