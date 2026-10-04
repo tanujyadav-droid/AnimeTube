@@ -34,14 +34,11 @@ const reviewSchema = new Schema(
 );
 
 // a review must be attached to exactly one of anime / season / episode
-reviewSchema.pre("validate", function (next) {
+reviewSchema.pre("validate", function () {
   const targets = [this.anime, this.season, this.episode].filter(Boolean);
   if (targets.length !== 1) {
-    return next(
-      new Error("A review must belong to exactly one of anime, season or episode")
-    );
+    throw new Error("A review must belong to exactly one of anime, season or episode");
   }
-  next();
 });
 
 // so "get all reviews of this anime/season/episode" stays fast
