@@ -27,5 +27,6 @@ build/
 coverage/
 
 # Temporary files
-tmp/
-temp/
+/temp/
+Public/temp/*
+!Public/temp/.gitkeep
