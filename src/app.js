@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -22,5 +23,10 @@ import healthcheckrouter from "./routes/healthcheck.route.js"
 
 // routes
 app.use("/api/v1/healthcheck", healthcheckrouter)
+
+
+// error handling middleware
+app.use(notFound);      
+app.use(errorHandler);
 
 export { app };
