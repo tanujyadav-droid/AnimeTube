@@ -1,3 +1,4 @@
+import fs from "fs";
 import { ApiError } from "../utils/ApiError.js";
 
 const isProd = () => process.env.NODE_ENV === "production";
@@ -57,7 +58,22 @@ const normalizeError = (err) => {
 };
 
 
+// Deletes any files multer saved to Public/temp for this request.
+// Safe if the file is already gone (uploadOnCloudinary deletes it itself).
+const removeUploadedFiles = (req) => {
+    const files = req.files
+        ? Array.isArray(req.files)
+            ? req.files
+            : Object.values(req.files).flat()
+        : req.file
+          ? [req.file]
+          : [];
+    files.forEach((file) => fs.unlink(file.path, () => {}));
+};
+
 const errorHandler = (err, req, res, next) => {
+    removeUploadedFiles(req);
+
     // if the response already started (e.g. mid-stream), we can't
     // send JSON anymore. Let Express's default handler close the connection.
     if (res.headersSent) {

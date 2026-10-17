@@ -9,7 +9,7 @@ const registerUser = asyncHandler( async (req, res) => {
 
     //validation
     if (
-        [username, email, password, dateOfBirth].some((field) => field?.trim() === "")
+        [username, email, password, dateOfBirth].some((field) => !field?.trim())
     ) {
         throw new ApiError(400, "All fields are required")
     }
@@ -26,19 +26,11 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "profilePicture file is required")
     }
 
-    // const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
-    // if (!profilePicture) {
-    //     throw new ApiError(400, "Failed to upload profile picture")
-    // }
-
-    let profilePicture;
-    try {
-        profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
-        console.log("Uploaded profilePicture");
-    } catch (error) {
-        console.log("Error uploading profilePicture", error);
+    const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
+    if (!profilePicture) {
         throw new ApiError(500, "Failed to upload ProfilePicture")
     }
+    console.log("Uploaded profilePicture");
 
     try {
         const user = await User.create({
@@ -46,7 +38,7 @@ const registerUser = asyncHandler( async (req, res) => {
             email,
             password,
             dateOfBirth,
-            profilePicture: profilePicture.url,
+            profilePicture: profilePicture.secure_url,
             region
         })
     
@@ -57,16 +49,15 @@ const registerUser = asyncHandler( async (req, res) => {
             throw new ApiError(500, "Something went wrong while registering the user")
         }
     
-        return res.status(200).json(
-            new ApiResponse(200, createdUser, "User registered Successfully")
+        return res.status(201).json(
+            new ApiResponse(201, createdUser, "User registered Successfully")
         )
     } catch (error) { 
         console.log("User Creation is failed", error);
-        if(profilePicture){
-            await deleteFromCloudinary(profilePicture.public_id)
-        }
+        await deleteFromCloudinary(profilePicture.public_id)
 
-         throw new ApiError(500, "Something went wrong while registering the user and images were deleted")
+        // rethrow the ORIGINAL error so the error middleware picks the right status code
+        throw error
     }
 })
 
