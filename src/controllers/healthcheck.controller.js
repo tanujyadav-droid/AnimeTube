@@ -8,4 +8,4 @@ const healthcheck = asyncHandler( async (req, res) => {
     .json(new ApiResponse(200, "OK", "Health check pass"))
 })
 
-export {healthcheck}
+export { healthcheck }

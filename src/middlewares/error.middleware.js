@@ -2,7 +2,7 @@ import { ApiError } from "../utils/ApiError.js";
 
 const isProd = () => process.env.NODE_ENV === "production";
 
-// 404 handler: place AFTER all routes, BEFORE errorHandler
+// 404 handler
 const notFound = (req, res, next) => {
     next(new ApiError(404, `Route not found: ${req.method} ${req.originalUrl}`));
 };
@@ -46,7 +46,6 @@ const normalizeError = (err) => {
         return new ApiError(400, err.message);
     }
 
-    // FIX 1: anything else is an unexpected server error.
     // Never send its real message to the client in production.
     const statusCode = err.statusCode || 500;
     const message =
@@ -57,10 +56,9 @@ const normalizeError = (err) => {
     return new ApiError(statusCode, message, [], err.stack);
 };
 
-// Must have 4 params so Express recognises it as an error handler
-// eslint-disable-next-line no-unused-vars
+
 const errorHandler = (err, req, res, next) => {
-    // FIX 2: if the response already started (e.g. mid-stream), we can't
+    // if the response already started (e.g. mid-stream), we can't
     // send JSON anymore. Let Express's default handler close the connection.
     if (res.headersSent) {
         return next(err);
