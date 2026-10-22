@@ -37,4 +37,9 @@ const deleteFromCloudinary = async (publicId) => {
   }
 }
 
-export { uploadOnCloudinary, deleteFromCloudinary };
+const getPublicIdFromUrl = (url) => {
+  const fileName = url.split("/").pop(); // "abc123xyz.jpg"
+  return fileName.split(".")[0];         // "abc123xyz"
+};
+
+export { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl };

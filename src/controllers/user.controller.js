@@ -2,7 +2,7 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/users.model.js"
-import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
 
@@ -214,9 +214,109 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const {oldPassword, newPassword} = req.body;
+
+    const user = await User.findById(req.user?._id)
+
+    if (!user) {
+        throw new ApiError(404, "User does not exist")
+    }
+
+    const isOldPasswordValid = await user.isPasswordCorrect(oldPassword)
+
+    if (!isOldPasswordValid) {
+        throw new ApiError(401, "Old password is incorrect")
+    }
+
+    user.password = newPassword
+    await user.save({ validateBeforeSave: false })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"))
+})
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res.status(200).json(
+        new ApiResponse(200, req.user, "Current user details")
+    )
+})
+
+const UpdateAccountDetails = asyncHandler(async (req, res) => {
+    const {username, region} = req.body
+
+    if (!username && !region) {
+        throw new ApiError(400, "At least one field is required to update")
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                username: username?.toLowerCase(),
+                region
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken")
+
+    return res.status(200).json(
+        new ApiResponse(200, updatedUser, "Account details updated successfully")
+    )
+})
+
+const updateProfilePicture = asyncHandler(async (req, res) => {
+    const profilePictureLocalPath = req.file?.path;
+
+    if (!profilePictureLocalPath) {
+        throw new ApiError(400, "profilePicture file is required")
+    }
+
+    // grab the old URL BEFORE the DB overwrites it
+    const oldProfilePictureUrl = req.user.profilePicture;
+
+    const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
+    if (!profilePicture) {
+        throw new ApiError(500, "Failed to upload ProfilePicture")
+    }
+
+    let updatedUser;
+    try {
+        updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $set: { profilePicture: profilePicture.secure_url } },
+            { new: true }
+        ).select("-password -refreshToken")
+    } catch (error) {
+        // DB failed, so the NEW image is now the orphan (same pattern as registerUser)
+        await deleteFromCloudinary(profilePicture.public_id)
+        throw error
+    }
+
+    // DB succeeded, so now it's safe to clean up the old one.
+    // Skipped if there is no old picture or it isn't hosted on Cloudinary.
+    if (oldProfilePictureUrl?.includes("res.cloudinary.com")) {
+        const result = await deleteFromCloudinary(getPublicIdFromUrl(oldProfilePictureUrl))
+        if (result?.result !== "ok") {
+            console.log("Old profile picture was not deleted from cloudinary:", oldProfilePictureUrl)
+        }
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, updatedUser, "Profile picture updated successfully")
+    )
+})
+
 export {
     registerUser,
     loginUser,
     refreshAccessToken,
-    logoutUser
+    logoutUser,
+    changeCurrentPassword,
+    getCurrentUser,
+    UpdateAccountDetails,
+    updateProfilePicture
 }
