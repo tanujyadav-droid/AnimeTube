@@ -22,7 +22,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 
 
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    throw error;
     }
 }
 
@@ -91,6 +91,10 @@ const loginUser = asyncHandler(async (req, res) =>{
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
     }
+
+    if (!password) {
+        throw new ApiError(400, "password is required")
+    }
     
     // Here is an alternative of above code based on logic discussed in video:
     // if (!(username || email)) {
@@ -99,8 +103,8 @@ const loginUser = asyncHandler(async (req, res) =>{
     // }
 
     const user = await User.findOne({
-        $or: [{username}, {email}]
-    })
+    $or: [{ username }, { email }]
+    }).select("+password");
 
     if (!user) {
         throw new ApiError(404, "User does not exist")
@@ -120,15 +124,17 @@ const loginUser = asyncHandler(async (req, res) =>{
         throw new ApiError(500, "Something went wrong while logging in the user")
     }
 
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production"
-    }
+    const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/"
+    };
 
     return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
         new ApiResponse(
             200, 
@@ -154,15 +160,17 @@ const logoutUser = asyncHandler(async(req, res) => {
         }
     )
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
+    const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/"
+    };
 
     return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
@@ -179,7 +187,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             process.env.REFRESH_TOKEN_SECRET
         )
     
-        const user = await User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id).select("+refreshToken");
     
         if (!user) {
             throw new ApiError(401, "Invalid refresh token")
@@ -190,17 +198,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             
         }
     
-        const options = {
+        const cookieOptions = {
             httpOnly: true,
-            secure: true
-        }
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/"
+        };
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefereshTokens(user._id);
     
         return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", newRefreshToken, options)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", newRefreshToken, cookieOptions)
         .json(
             new ApiResponse(
                 200, 
@@ -217,7 +227,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const {oldPassword, newPassword} = req.body;
 
-    const user = await User.findById(req.user?._id)
+    if (!oldPassword || !newPassword) {
+    throw new ApiError(400, "Both passwords are required");
+    }
+
+    const user = await User.findById(req.user?._id).select("+password");
 
     if (!user) {
         throw new ApiError(404, "User does not exist")
@@ -243,7 +257,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     )
 })
 
-const UpdateAccountDetails = asyncHandler(async (req, res) => {
+const updateAccountDetails = asyncHandler(async (req, res) => {
     const {username, region} = req.body
 
     if (!username && !region) {
@@ -259,7 +273,8 @@ const UpdateAccountDetails = asyncHandler(async (req, res) => {
             }
         },
         {
-            new: true
+            new: true,
+            runValidators: true
         }
     ).select("-password -refreshToken")
 
@@ -317,6 +332,6 @@ export {
     logoutUser,
     changeCurrentPassword,
     getCurrentUser,
-    UpdateAccountDetails,
+    updateAccountDetails,
     updateProfilePicture
 }

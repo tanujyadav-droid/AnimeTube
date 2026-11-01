@@ -3,8 +3,8 @@ import { registerUser,
          loginUser,
          refreshAccessToken,
          logoutUser,
-         UpdateAccountDetails,
-         UpdateProfilePicture,
+         updateAccountDetails,
+         updateProfilePicture,
          changeCurrentPassword,
          getCurrentUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -28,7 +28,7 @@ router.route("/logout").post(verifyJWT,  logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
 router.route("/change-password").post(verifyJWT, changeCurrentPassword)
 router.route("/get-user").get(verifyJWT, getCurrentUser)
-router.route("/update-account").patch(verifyJWT, UpdateAccountDetails)
+router.route("/update-account").patch(verifyJWT, updateAccountDetails)
 router.route("/update-profile-picture").patch(verifyJWT, upload.single("profilePicture"), updateProfilePicture)
 
 export default router
