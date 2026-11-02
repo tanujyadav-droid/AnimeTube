@@ -20,10 +20,12 @@ app.use(cookieParser());
 //import routes
 import healthcheckrouter from "./routes/healthcheck.route.js";
 import userRouter from "./routes/user.route.js";
+import historyRouter from "./routes/watch_history.route.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthcheckrouter);
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/history", historyRouter);
 
 // error handling middleware
 app.use(notFound);

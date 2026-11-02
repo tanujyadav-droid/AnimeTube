@@ -4,7 +4,6 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/users.model.js"
 import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken"
-import mongoose from "mongoose";
 
 const generateAccessAndRefereshTokens = async(userId) =>{
     try {
