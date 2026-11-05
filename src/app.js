@@ -22,12 +22,14 @@ import healthcheckrouter from "./routes/healthcheck.route.js";
 import userRouter from "./routes/user.route.js";
 import historyRouter from "./routes/watch_history.route.js";
 import genreRouter from "./routes/genre.route.js";
+import studioRouter from "./routes/studio.route.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthcheckrouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/history", historyRouter);
 app.use("/api/v1/genre", genreRouter);
+app.use("/api/v1/studio", studioRouter);
 
 // error handling middleware
 app.use(notFound);
