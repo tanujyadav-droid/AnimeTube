@@ -28,3 +28,10 @@ export const verifyJWT = asyncHandler(async(req, _, next) => {
     }
     
 })
+
+export const verifyAdmin = (req, _, next) => {
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403, "Admin access required")
+    }
+    next()
+}
