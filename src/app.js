@@ -24,6 +24,7 @@ import historyRouter from "./routes/watch_history.route.js";
 import genreRouter from "./routes/genre.route.js";
 import studioRouter from "./routes/studio.route.js";
 import animeRouter from "./routes/anime.route.js";
+import seasonRouter from "./routes/season.route.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthcheckrouter);
@@ -32,6 +33,7 @@ app.use("/api/v1/history", historyRouter);
 app.use("/api/v1/genre", genreRouter);
 app.use("/api/v1/studio", studioRouter);
 app.use("/api/v1/animes", animeRouter);
+app.use("/api/v1/seasons", seasonRouter);
 
 // error handling middleware
 app.use(notFound);
