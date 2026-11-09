@@ -33,4 +33,12 @@ const ensureExist = async (Model, ids, label) => {
   }
 };
 
-export { removeTempFile, deleteImageByUrl, parseIds, ensureExist };
+const deleteVideoByUrl = async (url) => {
+  if (!url?.includes("res.cloudinary.com")) return;
+  const result = await deleteFromCloudinary(getPublicIdFromUrl(url), "video");
+  if (result?.result !== "ok") {
+    console.log("Video was not deleted from cloudinary:", url);
+  }
+};
+
+export { removeTempFile, deleteImageByUrl, parseIds, ensureExist, deleteVideoByUrl };

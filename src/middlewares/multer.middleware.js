@@ -23,6 +23,26 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// episodes need a video AND a thumbnail, so each file is checked by its field name
+const episodeFileFilter = (req, file, cb) => {
+  const isVideoField = file.fieldname === "video";
+  const ok = file.mimetype.startsWith(isVideoField ? "video/" : "image/");
+  if (ok) {
+    cb(null, true);
+  } else {
+    cb(new ApiError(400, `${file.fieldname} must be a ${isVideoField ? "video" : "image"} file`));
+  }
+};
+
+export const uploadEpisodeFiles = multer({
+  storage,
+  fileFilter: episodeFileFilter,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB per file, match your Cloudinary plan's video limit
+}).fields([
+  { name: "video", maxCount: 1 },
+  { name: "thumbnail", maxCount: 1 },
+]);
+
 export const upload = multer({
   storage,
   fileFilter,

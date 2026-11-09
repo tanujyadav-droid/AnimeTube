@@ -15,6 +15,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     // upload the file to cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
+      timeout: 300000,
     });
     return response;
   } catch (error) {
@@ -26,16 +27,18 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-const deleteFromCloudinary = async (publicId) => {
+const deleteFromCloudinary = async (publicId, resourceType = "image") => {
   try {
-    const result = await cloudinary.uploader.destroy(publicId);
-    console.log("Deleted from cloudinary. Public id", publicId)
-    return result
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
+    console.log("Deleted from cloudinary. Public id", publicId);
+    return result;
   } catch (error) {
     console.log("Error deleting from cloudinary", error);
-    return null
+    return null;
   }
-}
+};
 
 const getPublicIdFromUrl = (url) => {
   const fileName = url.split("/").pop(); // "abc123xyz.jpg"
