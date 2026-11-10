@@ -32,6 +32,7 @@ import animeRouter from "./routes/anime.route.js";
 import seasonRouter from "./routes/season.route.js";
 import episodeRouter from "./routes/episode.route.js";
 import ratingRouter from "./routes/rating.route.js";
+import reviewRouter from "./routes/review.route.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthcheckrouter);
@@ -43,6 +44,7 @@ app.use("/api/v1/anime", animeRouter);
 app.use("/api/v1/season", seasonRouter);
 app.use("/api/v1/episode", episodeRouter);
 app.use("/api/v1/rating", ratingRouter);
+app.use("/api/v1/review", reviewRouter);
 
 // error handling middleware
 app.use(notFound);
