@@ -3,6 +3,33 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { WatchHistory } from "../models/watch_history.model.js";
 import { Episode } from "../models/episodes.model.js";
+import { Season } from "../models/seasons.model.js";
+import { Anime } from "../models/anime.model.js";
+
+// views = unique users who started watching, so this only runs the FIRST time
+// a user watches an episode. The season / anime only count it if the user
+// has not watched any other episode of that season / anime before.
+const countFirstView = async (userId, episode) => {
+  const season = await Season.findById(episode.season).select("anime");
+  const seasonIds = await Season.distinct("_id", { anime: season.anime });
+
+  // the other episodes of this season / anime (not counting this one)
+  const [seasonEpisodeIds, animeEpisodeIds] = await Promise.all([
+    Episode.distinct("_id", { season: episode.season, _id: { $ne: episode._id } }),
+    Episode.distinct("_id", { season: { $in: seasonIds }, _id: { $ne: episode._id } }),
+  ]);
+
+  const [seenSeason, seenAnime] = await Promise.all([
+    WatchHistory.exists({ user: userId, episode: { $in: seasonEpisodeIds } }),
+    WatchHistory.exists({ user: userId, episode: { $in: animeEpisodeIds } }),
+  ]);
+
+  await Promise.all([
+    Episode.updateOne({ _id: episode._id }, { $inc: { views: 1 } }),
+    !seenSeason && Season.updateOne({ _id: episode.season }, { $inc: { views: 1 } }),
+    !seenAnime && Anime.updateOne({ _id: season.anime }, { $inc: { views: 1 } }),
+  ]);
+};
 
 const updateWatchHistory = asyncHandler(async (req, res) => {
   const { episodeId } = req.params;
@@ -17,7 +44,7 @@ const updateWatchHistory = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid progress value.");
   }
 
-  const episode = await Episode.findById(episodeId).select("duration");
+  const episode = await Episode.findById(episodeId).select("duration season");
   if (!episode) {
     throw new ApiError(404, "Episode not found");
   }
@@ -26,11 +53,18 @@ const updateWatchHistory = asyncHandler(async (req, res) => {
   const clampedProgress = Math.min(progress, episode.duration);
   const completed = clampedProgress >= episode.duration;
 
-  const watchHistory = await WatchHistory.findOneAndUpdate(
-    { user: userId, episode: episodeId },
-    { $set: { progress: clampedProgress, completed } },
-    { upsert: true, new: true, runValidators: true }
-  );
+  const result = await WatchHistory.findOneAndUpdate(
+  { user: userId, episode: episodeId },
+  { $set: { progress: clampedProgress, completed } },
+  { upsert: true, new: true, runValidators: true, includeResultMetadata: true }
+);
+const watchHistory = result.value;
+
+// updatedExisting is false when the upsert had to create the document,
+// which means this is the first time this user watches this episode
+if (!result.lastErrorObject.updatedExisting) {
+  await countFirstView(userId, episode);
+}
 
   return res
     .status(200)
