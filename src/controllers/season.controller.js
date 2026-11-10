@@ -7,24 +7,19 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
-import { removeTempFile, deleteImageByUrl } from "../utils/fileHelpers.js";
+import { deleteImageByUrl } from "../utils/fileHelpers.js";
 
 const createSeason = asyncHandler(async (req, res) => {
   const { animeId, seasonNumber, title, description, releaseDate } = req.body;
 
-  try {
-    if (!mongoose.isObjectIdOrHexString(animeId)) {
-      throw new ApiError(400, "A valid animeId is required");
-    }
-    if (seasonNumber === undefined || seasonNumber === "") {
-      throw new ApiError(400, "seasonNumber is required");
-    }
-    if (!(await Anime.exists({ _id: animeId }))) {
-      throw new ApiError(404, "Anime not found");
-    }
-  } catch (error) {
-    removeTempFile(req.file);
-    throw error;
+  if (!mongoose.isObjectIdOrHexString(animeId)) {
+    throw new ApiError(400, "A valid animeId is required");
+  }
+  if (seasonNumber === undefined || seasonNumber === "") {
+    throw new ApiError(400, "seasonNumber is required");
+  }
+  if (!(await Anime.exists({ _id: animeId }))) {
+    throw new ApiError(404, "Anime not found");
   }
 
   let poster;
@@ -61,24 +56,18 @@ const updateSeason = asyncHandler(async (req, res) => {
   const { seasonNumber, title, description, releaseDate } = req.body;
 
   const updates = {};
-  let season;
-  try {
-    if (seasonNumber !== undefined) updates.seasonNumber = seasonNumber;
-    if (title !== undefined) updates.title = title;
-    if (description !== undefined) updates.description = description;
-    if (releaseDate !== undefined) updates.releaseDate = releaseDate;
+  if (seasonNumber !== undefined) updates.seasonNumber = seasonNumber;
+  if (title !== undefined) updates.title = title;
+  if (description !== undefined) updates.description = description;
+  if (releaseDate !== undefined) updates.releaseDate = releaseDate;
 
-    if (Object.keys(updates).length === 0 && !req.file) {
-      throw new ApiError(400, "Send at least one field or a new poster to update");
-    }
+  if (Object.keys(updates).length === 0 && !req.file) {
+    throw new ApiError(400, "Send at least one field or a new poster to update");
+  }
 
-    season = await Season.findById(seasonId);
-    if (!season) {
-      throw new ApiError(404, "Season not found");
-    }
-  } catch (error) {
-    removeTempFile(req.file);
-    throw error;
+  const season = await Season.findById(seasonId);
+  if (!season) {
+    throw new ApiError(404, "Season not found");
   }
 
   const oldPosterUrl = season.posterUrl;

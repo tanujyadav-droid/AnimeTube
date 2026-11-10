@@ -14,6 +14,11 @@ app.use(
 );
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+// Express 5 leaves req.body undefined when there is no body; make it an empty object
+app.use((req, _res, next) => {
+  req.body ??= {};
+  next();
+});
 app.use(express.static("Public"));
 app.use(cookieParser());
 
@@ -33,9 +38,9 @@ app.use("/api/v1/user", userRouter);
 app.use("/api/v1/history", historyRouter);
 app.use("/api/v1/genre", genreRouter);
 app.use("/api/v1/studio", studioRouter);
-app.use("/api/v1/animes", animeRouter);
-app.use("/api/v1/seasons", seasonRouter);
-app.use("/api/v1/episodes", episodeRouter);
+app.use("/api/v1/anime", animeRouter);
+app.use("/api/v1/season", seasonRouter);
+app.use("/api/v1/episode", episodeRouter);
 
 // error handling middleware
 app.use(notFound);

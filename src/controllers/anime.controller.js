@@ -1,5 +1,3 @@
-import fs from "fs";
-import mongoose from "mongoose";
 import { Anime } from "../models/anime.model.js";
 import { Genre } from "../models/genre.model.js";
 import { Studio } from "../models/studios.model.js";
@@ -8,21 +6,11 @@ import { Review } from "../models/review.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {
-  uploadOnCloudinary,
-  deleteFromCloudinary,
-  getPublicIdFromUrl,
-} from "../utils/cloudinary.js";
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
 import { deleteImageByUrl,
          ensureExist,
          parseIds
  } from "../utils/fileHelpers.js";
-
-// with upload.fields, req.files looks like { poster: [file], banner: [file] }
-const removeTempFiles = (files) => {
-  if (!files) return;
-  Object.values(files).flat().forEach((file) => fs.unlink(file.path, () => {}));
-};
 
 // ---------- controllers ----------
 
@@ -31,22 +19,18 @@ const createAnime = asyncHandler(async (req, res) => {
   const posterLocalPath = req.files?.poster?.[0]?.path;
   const bannerLocalPath = req.files?.banner?.[0]?.path;
 
+  if (!title?.trim()) {
+    throw new ApiError(400, "Anime title is required");
+  }
+
   let genreIds, studioIds;
-  try {
-    if (!title?.trim()) {
-      throw new ApiError(400, "Anime title is required");
-    }
-    if (genres !== undefined) {
-      genreIds = parseIds(genres, "genre");
-      await ensureExist(Genre, genreIds, "genres");
-    }
-    if (studios !== undefined) {
-      studioIds = parseIds(studios, "studio");
-      await ensureExist(Studio, studioIds, "studios");
-    }
-  } catch (error) {
-    removeTempFiles(req.files); // we're rejecting, so the temp files must go
-    throw error;
+  if (genres !== undefined) {
+    genreIds = parseIds(genres, "genre");
+    await ensureExist(Genre, genreIds, "genres");
+  }
+  if (studios !== undefined) {
+    studioIds = parseIds(studios, "studio");
+    await ensureExist(Studio, studioIds, "studios");
   }
 
   // both uploads run at the same time; each one deletes its own temp file
@@ -94,40 +78,34 @@ const updateAnime = asyncHandler(async (req, res) => {
   const bannerLocalPath = req.files?.banner?.[0]?.path;
 
   const updates = {};
-  let anime;
-  try {
-    if (title !== undefined) {
-      if (!title.trim()) throw new ApiError(400, "Anime title cannot be empty");
-      updates.title = title;
-    }
-    if (description !== undefined) updates.description = description;
-    if (releaseDate !== undefined) updates.releaseDate = releaseDate;
-    if (status !== undefined) updates.status = status;
-    if (ageRating !== undefined) updates.ageRating = ageRating;
-    if (trailerUrl !== undefined) updates.trailerUrl = trailerUrl;
+  if (title !== undefined) {
+    if (!title.trim()) throw new ApiError(400, "Anime title cannot be empty");
+    updates.title = title;
+  }
+  if (description !== undefined) updates.description = description;
+  if (releaseDate !== undefined) updates.releaseDate = releaseDate;
+  if (status !== undefined) updates.status = status;
+  if (ageRating !== undefined) updates.ageRating = ageRating;
+  if (trailerUrl !== undefined) updates.trailerUrl = trailerUrl;
 
-    if (genres !== undefined) {
-      const ids = parseIds(genres, "genre");
-      await ensureExist(Genre, ids, "genres");
-      updates.genres = ids;
-    }
-    if (studios !== undefined) {
-      const ids = parseIds(studios, "studio");
-      await ensureExist(Studio, ids, "studios");
-      updates.studios = ids;
-    }
+  if (genres !== undefined) {
+    const ids = parseIds(genres, "genre");
+    await ensureExist(Genre, ids, "genres");
+    updates.genres = ids;
+  }
+  if (studios !== undefined) {
+    const ids = parseIds(studios, "studio");
+    await ensureExist(Studio, ids, "studios");
+    updates.studios = ids;
+  }
 
-    if (Object.keys(updates).length === 0 && !posterLocalPath && !bannerLocalPath) {
-      throw new ApiError(400, "Send at least one field or image to update");
-    }
+  if (Object.keys(updates).length === 0 && !posterLocalPath && !bannerLocalPath) {
+    throw new ApiError(400, "Send at least one field or image to update");
+  }
 
-    anime = await Anime.findById(animeId);
-    if (!anime) {
-      throw new ApiError(404, "Anime not found");
-    }
-  } catch (error) {
-    removeTempFiles(req.files);
-    throw error;
+  const anime = await Anime.findById(animeId);
+  if (!anime) {
+    throw new ApiError(404, "Anime not found");
   }
 
   // grab the old URLs BEFORE the DB overwrites them

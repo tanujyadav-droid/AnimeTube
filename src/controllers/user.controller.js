@@ -2,7 +2,8 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/users.model.js"
-import { uploadOnCloudinary, deleteFromCloudinary, getPublicIdFromUrl } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
+import { deleteImageByUrl } from "../utils/fileHelpers.js"
 import jwt from "jsonwebtoken"
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -85,7 +86,6 @@ const registerUser = asyncHandler( async (req, res) => {
 const loginUser = asyncHandler(async (req, res) =>{
 
     const {email, username, password} = req.body
-    console.log(email);
 
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
@@ -310,14 +310,9 @@ const updateProfilePicture = asyncHandler(async (req, res) => {
         throw error
     }
 
-    // DB succeeded, so now it's safe to clean up the old one.
-    // Skipped if there is no old picture or it isn't hosted on Cloudinary.
-    if (oldProfilePictureUrl?.includes("res.cloudinary.com")) {
-        const result = await deleteFromCloudinary(getPublicIdFromUrl(oldProfilePictureUrl))
-        if (result?.result !== "ok") {
-            console.log("Old profile picture was not deleted from cloudinary:", oldProfilePictureUrl)
-        }
-    }
+    // DB succeeded, so now it's safe to clean up the old one
+    // (the helper skips it if there is no old picture or it isn't on Cloudinary)
+    await deleteImageByUrl(oldProfilePictureUrl)
 
     return res.status(200).json(
         new ApiResponse(200, updatedUser, "Profile picture updated successfully")

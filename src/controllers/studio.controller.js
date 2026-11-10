@@ -1,24 +1,15 @@
-import fs from "fs";
 import { Studio } from "../models/studios.model.js";
 import { Anime } from "../models/anime.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {
-  uploadOnCloudinary,
-  deleteFromCloudinary,
-  getPublicIdFromUrl,
-} from "../utils/cloudinary.js";
-
-const removeTempFile = (file) => {
-  if (file?.path) fs.unlink(file.path, () => {});
-};
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { deleteImageByUrl } from "../utils/fileHelpers.js";
 
 const createStudio = asyncHandler(async (req, res) => {
   const { name, description, country, websiteUrl } = req.body;
 
   if (!name?.trim()) {
-    removeTempFile(req.file);
     throw new ApiError(400, "Studio name is required");
   }
 
@@ -75,10 +66,7 @@ const updateStudio = asyncHandler(async (req, res) => {
 
   const updates = {};
   if (name !== undefined) {
-    if (!name.trim()) {
-      removeTempFile(req.file);
-      throw new ApiError(400, "Studio name cannot be empty");
-    }
+    if (!name.trim()) throw new ApiError(400, "Studio name cannot be empty");
     updates.name = name;
   }
   if (description !== undefined) updates.description = description;
@@ -91,7 +79,6 @@ const updateStudio = asyncHandler(async (req, res) => {
 
   const studio = await Studio.findById(studioId);
   if (!studio) {
-    removeTempFile(req.file);
     throw new ApiError(404, "Studio not found");
   }
 
@@ -118,15 +105,7 @@ const updateStudio = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  if (logo && oldLogoUrl?.includes("res.cloudinary.com")) {
-    const result = await deleteFromCloudinary(getPublicIdFromUrl(oldLogoUrl));
-    if (result?.result !== "ok") {
-      console.log(
-        "Old studio logo was not deleted from cloudinary:",
-        oldLogoUrl
-      );
-    }
-  }
+  if (logo) await deleteImageByUrl(oldLogoUrl);
 
   return res
     .status(200)
@@ -149,17 +128,7 @@ const deleteStudio = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Studio not found");
   }
 
-  if (studio.logoUrl?.includes("res.cloudinary.com")) {
-    const result = await deleteFromCloudinary(
-      getPublicIdFromUrl(studio.logoUrl)
-    );
-    if (result?.result !== "ok") {
-      console.log(
-        "Studio logo was not deleted from cloudinary:",
-        studio.logoUrl
-      );
-    }
-  }
+  await deleteImageByUrl(studio.logoUrl);
 
   return res
     .status(200)

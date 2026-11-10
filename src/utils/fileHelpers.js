@@ -1,10 +1,6 @@
-import fs from "fs";
+import mongoose from "mongoose";
+import { ApiError } from "./ApiError.js";
 import { deleteFromCloudinary, getPublicIdFromUrl } from "./cloudinary.js";
-
-// multer saved the file before our code ran; remove it when we reject the request
-const removeTempFile = (file) => {
-  if (file?.path) fs.unlink(file.path, () => {});
-};
 
 const deleteImageByUrl = async (url) => {
   if (!url?.includes("res.cloudinary.com")) return;
@@ -41,4 +37,4 @@ const deleteVideoByUrl = async (url) => {
   }
 };
 
-export { removeTempFile, deleteImageByUrl, parseIds, ensureExist, deleteVideoByUrl };
+export { deleteImageByUrl, deleteVideoByUrl, parseIds, ensureExist };
