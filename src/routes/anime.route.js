@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { createAnime, updateAnime, deleteAnime } from "../controllers/anime.controller.js";
+import { createAnime, 
+         updateAnime, 
+         deleteAnime, 
+         getAllAnime,
+         getAnimeById } 
+from "../controllers/anime.controller.js";
 import { verifyJWT, verifyAdmin } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -10,9 +15,12 @@ const animeImages = upload.fields([
   { name: "banner", maxCount: 1 },
 ]);
 
-router.route("/").post(verifyJWT, verifyAdmin, animeImages, createAnime);
+router.route("/")
+  .get(getAllAnime)
+  .post(verifyJWT, verifyAdmin, animeImages, createAnime);
 
 router.route("/:animeId")
+  .get(getAnimeById)
   .patch(verifyJWT, verifyAdmin, animeImages, updateAnime)
   .delete(verifyJWT, verifyAdmin, deleteAnime);
 

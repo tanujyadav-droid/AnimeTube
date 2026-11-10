@@ -89,7 +89,7 @@ const updateEpisode = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Send at least one field or file to update");
   }
 
-  const episode = await Episode.findById(episodeId);
+  const episode = await Episode.findById(episodeId).select("+videoUrl");
   if (!episode) {
     throw new ApiError(404, "Episode not found");
   }
@@ -139,7 +139,7 @@ const updateEpisode = asyncHandler(async (req, res) => {
 const deleteEpisode = asyncHandler(async (req, res) => {
   const { episodeId } = req.params;
 
-  const episode = await Episode.findByIdAndDelete(episodeId);
+  const episode = await Episode.findByIdAndDelete(episodeId).select("+videoUrl");
   if (!episode) {
     throw new ApiError(404, "Episode not found");
   }
@@ -159,4 +159,37 @@ const deleteEpisode = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Episode deleted successfully"));
 });
 
-export { createEpisode, updateEpisode, deleteEpisode };
+const getEpisodesBySeason = asyncHandler(async (req, res) => {
+  const { seasonId } = req.params;
+
+  if (!(await Season.exists({ _id: seasonId }))) {
+    throw new ApiError(404, "Season not found");
+  }
+
+  const episodes = await Episode.find({ season: seasonId })
+    .select("episodeNumber title description duration thumbnailUrl releaseDate views")
+    .sort({ episodeNumber: 1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, episodes, "Episodes fetched successfully"));
+});
+
+const getEpisodeById = asyncHandler(async (req, res) => {
+  const { episodeId } = req.params;
+
+  // videoUrl is not here: it is select:false in the schema
+  const episode = await Episode.findById(episodeId).populate(
+    "season",
+    "anime seasonNumber title"
+  );
+  if (!episode) {
+    throw new ApiError(404, "Episode not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, episode, "Episode fetched successfully"));
+});
+
+export { createEpisode, updateEpisode, deleteEpisode, getEpisodesBySeason, getEpisodeById };

@@ -35,6 +35,7 @@ const episodeSchema = new Schema(
     videoUrl: {
       type: String,
       required: true,
+      select: false,
     },
     thumbnailUrl: {
       type: String,

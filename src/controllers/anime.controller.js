@@ -174,4 +174,53 @@ const deleteAnime = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Anime deleted successfully"));
 });
 
-export { createAnime, updateAnime, deleteAnime };
+const getAllAnime = asyncHandler(async (req, res) => {
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 50);
+  const skip = (page - 1) * limit;
+
+  const [animeList, total] = await Promise.all([
+    Anime.find()
+      .select("title posterUrl status ageRating releaseDate views genres studios")
+      .populate("genres", "name")
+      .populate("studios", "name")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Anime.countDocuments(),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        anime: animeList,
+        pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      },
+      "Anime fetched successfully"
+    )
+  );
+});
+
+const getAnimeById = asyncHandler(async (req, res) => {
+  const { animeId } = req.params;
+
+  const [anime, seasons] = await Promise.all([
+    Anime.findById(animeId)
+      .populate("genres", "name")
+      .populate("studios", "name logoUrl"),
+    Season.find({ anime: animeId })
+      .select("seasonNumber title description posterUrl releaseDate views")
+      .sort({ seasonNumber: 1 }),
+  ]);
+
+  if (!anime) {
+    throw new ApiError(404, "Anime not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { anime, seasons }, "Anime fetched successfully"));
+});
+
+export { createAnime, updateAnime, deleteAnime, getAllAnime, getAnimeById };
