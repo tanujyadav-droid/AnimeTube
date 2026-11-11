@@ -1,0 +1,1794 @@
+{
+  "info": {
+    "name": "AnimeTube API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Every AnimeTube endpoint. Each request says who can call it in its description.\n\nHow to use:\n1. Start the server (npm run dev) and check the baseUrl variable (default http://localhost:8000/api/v1).\n2. Register, then Login. Postman keeps the accessToken and refreshToken cookies by itself.\n3. Admin requests need a user whose role is \"admin\". New users are \"user\", so change the role in the database by hand.\n4. Create requests save the new _id into collection variables (genreId, studioId, animeId, seasonId, episodeId, planId, reviewId), so the later requests work without copying ids.\n5. File fields (poster, banner, logo, video, thumbnail, profilePicture) are empty: pick a file before sending."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1"
+    },
+    {
+      "key": "genreId",
+      "value": ""
+    },
+    {
+      "key": "studioId",
+      "value": ""
+    },
+    {
+      "key": "animeId",
+      "value": ""
+    },
+    {
+      "key": "seasonId",
+      "value": ""
+    },
+    {
+      "key": "episodeId",
+      "value": ""
+    },
+    {
+      "key": "planId",
+      "value": ""
+    },
+    {
+      "key": "reviewId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Healthcheck",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthcheck",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "healthcheck"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "register"
+              ]
+            },
+            "description": "Access: Public",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "username",
+                  "value": "tanuj",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "tanuj@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "Password@123",
+                  "type": "text"
+                },
+                {
+                  "key": "dateOfBirth",
+                  "value": "2004-05-20",
+                  "type": "text"
+                },
+                {
+                  "key": "region",
+                  "value": "IN",
+                  "type": "text"
+                },
+                {
+                  "key": "profilePicture",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (saves the cookies)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            },
+            "description": "Access: Public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tanuj@example.com\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "logout"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Refresh access token (uses the refreshToken cookie)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "refresh-token"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "change-password"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get current user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/get-user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "get-user"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Update account details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/update-account",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "update-account"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"tanuj2\",\n  \"region\": \"IN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update profile picture",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/update-profile-picture",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "update-profile-picture"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "profilePicture",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "item": [
+        {
+          "name": "Update watch history (progress in seconds)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/history/update-watch-history/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "history",
+                "update-watch-history",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progress\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get my watch history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/history/get-watch-history?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "history",
+                "get-watch-history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Remove one entry from history",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/history/remove-one-entry/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "history",
+                "remove-one-entry",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Clear my watch history",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/history/clear-watch-history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "history",
+                "clear-watch-history"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Genre",
+      "item": [
+        {
+          "name": "Get all genres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/genre",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "genre"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Create genre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/genre",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "genre"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Action\",\n  \"description\": \"Fights and fast pacing\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"genreId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get genre by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/genre/{{genreId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "genre",
+                "{{genreId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Update genre",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/genre/{{genreId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "genre",
+                "{{genreId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete genre",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/genre/{{genreId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "genre",
+                "{{genreId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Studio",
+      "item": [
+        {
+          "name": "Get all studios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/studio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "studio"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Create studio",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/studio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "studio"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "MAPPA",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Animation studio",
+                  "type": "text"
+                },
+                {
+                  "key": "country",
+                  "value": "Japan",
+                  "type": "text"
+                },
+                {
+                  "key": "websiteUrl",
+                  "value": "https://www.mappa.co.jp",
+                  "type": "text"
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"studioId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get studio by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/studio/{{studioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "studio",
+                "{{studioId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Update studio",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/studio/{{studioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "studio",
+                "{{studioId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "description",
+                  "value": "Updated description",
+                  "type": "text"
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete studio",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/studio/{{studioId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "studio",
+                "{{studioId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anime",
+      "item": [
+        {
+          "name": "Get all anime (paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anime?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "anime"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Create anime",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anime",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "anime"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Jujutsu Kaisen",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A student joins a school of sorcerers",
+                  "type": "text"
+                },
+                {
+                  "key": "releaseDate",
+                  "value": "2020-10-03",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "ONGOING",
+                  "type": "text"
+                },
+                {
+                  "key": "ageRating",
+                  "value": "16+",
+                  "type": "text"
+                },
+                {
+                  "key": "trailerUrl",
+                  "value": "https://www.youtube.com/watch?v=xxxxxxxxxxx",
+                  "type": "text"
+                },
+                {
+                  "key": "genres",
+                  "value": "{{genreId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "studios",
+                  "value": "{{studioId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "poster",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "banner",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"animeId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get anime by id (with seasons)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anime/{{animeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "anime",
+                "{{animeId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Update anime",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anime/{{animeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "anime",
+                "{{animeId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "status",
+                  "value": "COMPLETED",
+                  "type": "text"
+                },
+                {
+                  "key": "poster",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "banner",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete anime",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/anime/{{animeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "anime",
+                "{{animeId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Season",
+      "item": [
+        {
+          "name": "Create season",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/season",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "season"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "animeId",
+                  "value": "{{animeId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "seasonNumber",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Season 1",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "First season",
+                  "type": "text"
+                },
+                {
+                  "key": "releaseDate",
+                  "value": "2020-10-03",
+                  "type": "text"
+                },
+                {
+                  "key": "poster",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"seasonId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update season",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/season/{{seasonId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "season",
+                "{{seasonId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Season 1 (updated)",
+                  "type": "text"
+                },
+                {
+                  "key": "poster",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete season",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/season/{{seasonId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "season",
+                "{{seasonId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        },
+        {
+          "name": "Get episodes of a season",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/season/{{seasonId}}/episodes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "season",
+                "{{seasonId}}",
+                "episodes"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Episode",
+      "item": [
+        {
+          "name": "Create episode",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/episode",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "episode"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "seasonId",
+                  "value": "{{seasonId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "episodeNumber",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Episode 1",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "The first episode",
+                  "type": "text"
+                },
+                {
+                  "key": "releaseDate",
+                  "value": "2020-10-03",
+                  "type": "text"
+                },
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "thumbnail",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"episodeId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Watch episode (returns videoUrl)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/episode/{{episodeId}}/watch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "episode",
+                "{{episodeId}}",
+                "watch"
+              ]
+            },
+            "description": "Access: Login + active subscription"
+          }
+        },
+        {
+          "name": "Get episode by id (no videoUrl)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/episode/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "episode",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Update episode",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/episode/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "episode",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Episode 1 (updated)",
+                  "type": "text"
+                },
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "thumbnail",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete episode",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/episode/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "episode",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rating",
+      "item": [
+        {
+          "name": "Rate an episode (1 to 10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/rating/rate-episode/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "rate-episode",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get my rating of an episode",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rating/get-my-rating/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "get-my-rating",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Remove my rating",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rating/remove-rating/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "remove-rating",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Get average rating of an episode",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rating/get-episode-rating/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "get-episode-rating",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Get average rating of a season",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rating/get-season-rating/{{seasonId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "get-season-rating",
+                "{{seasonId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Get average rating of an anime",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rating/get-anime-rating/{{animeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rating",
+                "get-anime-rating",
+                "{{animeId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "item": [
+        {
+          "name": "Add review (anime)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/review/add-review/anime/{{animeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "add-review",
+                "anime",
+                "{{animeId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Great show\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"reviewId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add review (season)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/review/add-review/season/{{seasonId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "add-review",
+                "season",
+                "{{seasonId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Great show\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"reviewId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add review (episode)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/review/add-review/episode/{{episodeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "add-review",
+                "episode",
+                "{{episodeId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Great show\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"reviewId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get reviews (anime)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/review/get-reviews/anime/{{animeId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "get-reviews",
+                "anime",
+                "{{animeId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Get reviews (season)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/review/get-reviews/season/{{seasonId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "get-reviews",
+                "season",
+                "{{seasonId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Get reviews (episode)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/review/get-reviews/episode/{{episodeId}}?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "get-reviews",
+                "episode",
+                "{{episodeId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Edit my review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/review/edit-review/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "edit-review",
+                "{{reviewId}}"
+              ]
+            },
+            "description": "Access: Login required",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Edited review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete my review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/review/delete-review/{{reviewId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "review",
+                "delete-review",
+                "{{reviewId}}"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plan",
+      "item": [
+        {
+          "name": "Get all plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Create plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planName\": \"BASIC\",\n  \"price\": 99,\n  \"duration\": 30,\n  \"maxDevices\": 2,\n  \"videoQuality\": \"720p\",\n  \"downloadAllowed\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set(\"planId\", res.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get plan by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plan/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "{{planId}}"
+              ]
+            },
+            "description": "Access: Public"
+          }
+        },
+        {
+          "name": "Update plan",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "{{planId}}"
+              ]
+            },
+            "description": "Access: Admin only",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 149\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plan/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "{{planId}}"
+              ]
+            },
+            "description": "Access: Admin only"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscription",
+      "item": [
+        {
+          "name": "Subscribe to a plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/subscribe/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "subscribe",
+                "{{planId}}"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Get my active subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/my-subscription",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "my-subscription"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        },
+        {
+          "name": "Cancel my subscription",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subscription/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "subscription",
+                "cancel"
+              ]
+            },
+            "description": "Access: Login required"
+          }
+        }
+      ]
+    }
+  ]
+}
