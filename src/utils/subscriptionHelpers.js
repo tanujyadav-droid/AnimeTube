@@ -12,4 +12,13 @@ const getActiveSubscription = async (userId) => {
   return UserSubscription.findOne({ user: userId, status: "ACTIVE" });
 };
 
-export { getActiveSubscription };
+// Cheaper check for the playback gate: one read, no write. A stale ACTIVE row
+// (endDate already passed) just doesn't match, so it doesn't count.
+const hasActiveSubscription = async (userId) =>
+  UserSubscription.exists({
+    user: userId,
+    status: "ACTIVE",
+    endDate: { $gt: new Date() },
+  });
+
+export { getActiveSubscription, hasActiveSubscription };

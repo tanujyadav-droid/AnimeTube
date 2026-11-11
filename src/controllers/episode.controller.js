@@ -192,4 +192,29 @@ const getEpisodeById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, episode, "Episode fetched successfully"));
 });
 
-export { createEpisode, updateEpisode, deleteEpisode, getEpisodesBySeason, getEpisodeById };
+const getEpisodePlayback = asyncHandler(async (req, res) => {
+  const { episodeId } = req.params;
+
+  // the one place videoUrl is handed out (the route runs verifyJWT and
+  // checkSubscription before this)
+  const episode = await Episode.findById(episodeId).select("+videoUrl");
+  if (!episode) {
+    throw new ApiError(404, "Episode not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        episodeId: episode._id,
+        title: episode.title,
+        episodeNumber: episode.episodeNumber,
+        duration: episode.duration,
+        videoUrl: episode.videoUrl,
+      },
+      "Playback details fetched successfully"
+    )
+  );
+});
+
+export { createEpisode, updateEpisode, deleteEpisode, getEpisodesBySeason, getEpisodeById, getEpisodePlayback };
